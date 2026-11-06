@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "564967454862",
+    "project_id": "campus-incident-reporting-alu",
+    "storage_bucket": "campus-incident-reporting-alu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564967454862:android:1e9f55db91da57db8af1df",
+        "android_client_info": {
+          "package_name": "com.bior.mend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7nd7nS0TMu-R3ksYxRhExkmHZpmM9jTU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564967454862:android:09688fc6339379778af1df",
+        "android_client_info": {
+          "package_name": "edu.alueducation.campus_incident_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7nd7nS0TMu-R3ksYxRhExkmHZpmM9jTU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
