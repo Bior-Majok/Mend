@@ -30,6 +30,7 @@ class IncidentProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }, onError: (e) {
+      _incidents = _firestoreService.getInitialIncidents();
       _isLoading = false;
       notifyListeners();
     });

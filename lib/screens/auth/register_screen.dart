@@ -103,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: const Icon(Icons.eco_rounded, color: Colors.white, size: 14),
             ),
             const SizedBox(width: 6),
-            const Text('CampusCare', style: TextStyle(fontSize: 16)),
+            const Text('Mend', style: TextStyle(fontSize: 16)),
           ],
         ),
       ),

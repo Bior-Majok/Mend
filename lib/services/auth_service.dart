@@ -120,24 +120,49 @@ class AuthService {
         await firestore.collection('users').doc(uid).set(newUser.toMap());
         return newUser;
       } on FirebaseAuthException catch (e) {
+        if (e.code == 'configuration-not-found' ||
+            (e.message != null && e.message!.contains('CONFIGURATION_NOT_FOUND'))) {
+          return _handleLocalSignUp(
+            trimmedEmail: trimmedEmail,
+            fullName: fullName,
+            role: role,
+            department: department,
+            campus: campus,
+          );
+        }
         throw Exception(e.message ?? 'Registration failed.');
       }
     } else {
-      // Local fallback
-      final uid = 'user_${DateTime.now().millisecondsSinceEpoch}';
-      final newUser = UserModel(
-        uid: uid,
-        email: trimmedEmail,
+      return _handleLocalSignUp(
+        trimmedEmail: trimmedEmail,
         fullName: fullName,
         role: role,
         department: department,
         campus: campus,
       );
-      _mockUsers[trimmedEmail] = newUser;
-      _currentMockUser = newUser;
-      _mockUserStreamController.add(newUser);
-      return newUser;
     }
+  }
+
+  UserModel _handleLocalSignUp({
+    required String trimmedEmail,
+    required String fullName,
+    required String role,
+    required String department,
+    required String campus,
+  }) {
+    final uid = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    final newUser = UserModel(
+      uid: uid,
+      email: trimmedEmail,
+      fullName: fullName,
+      role: role,
+      department: department,
+      campus: campus,
+    );
+    _mockUsers[trimmedEmail] = newUser;
+    _currentMockUser = newUser;
+    _mockUserStreamController.add(newUser);
+    return newUser;
   }
 
   Future<UserModel> signIn({
@@ -172,33 +197,39 @@ class AuthService {
           role: 'student',
         );
       } on FirebaseAuthException catch (e) {
+        if (e.code == 'configuration-not-found' ||
+            (e.message != null && e.message!.contains('CONFIGURATION_NOT_FOUND'))) {
+          return _handleLocalSignIn(trimmedEmail);
+        }
         throw Exception(e.message ?? 'Authentication failed.');
       }
     } else {
-      // Local fallback
-      if (_mockUsers.containsKey(trimmedEmail)) {
-        final user = _mockUsers[trimmedEmail]!;
-        _currentMockUser = user;
-        _mockUserStreamController.add(user);
-        return user;
-      } else {
-        // Auto-create local user
-        final isStaff = trimmedEmail.contains('staff') ||
-            trimmedEmail.contains('admin') ||
-            trimmedEmail.endsWith('@alueducation.com');
-        final user = UserModel(
-          uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
-          email: trimmedEmail,
-          fullName: trimmedEmail.split('@').first.replaceAll('.', ' ').toUpperCase(),
-          role: isStaff ? 'staff' : 'student',
-          department: isStaff ? 'Facilities & Security' : 'Software Engineering',
-          campus: 'Kigali, Rwanda',
-        );
-        _mockUsers[trimmedEmail] = user;
-        _currentMockUser = user;
-        _mockUserStreamController.add(user);
-        return user;
-      }
+      return _handleLocalSignIn(trimmedEmail);
+    }
+  }
+
+  UserModel _handleLocalSignIn(String trimmedEmail) {
+    if (_mockUsers.containsKey(trimmedEmail)) {
+      final user = _mockUsers[trimmedEmail]!;
+      _currentMockUser = user;
+      _mockUserStreamController.add(user);
+      return user;
+    } else {
+      final isStaff = trimmedEmail.contains('staff') ||
+          trimmedEmail.contains('admin') ||
+          trimmedEmail.endsWith('@alueducation.com');
+      final user = UserModel(
+        uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        email: trimmedEmail,
+        fullName: trimmedEmail.split('@').first.replaceAll('.', ' ').toUpperCase(),
+        role: isStaff ? 'staff' : 'student',
+        department: isStaff ? 'Facilities & Security' : 'Software Engineering',
+        campus: 'Kigali, Rwanda',
+      );
+      _mockUsers[trimmedEmail] = user;
+      _currentMockUser = user;
+      _mockUserStreamController.add(user);
+      return user;
     }
   }
 

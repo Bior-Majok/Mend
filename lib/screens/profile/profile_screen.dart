@@ -268,7 +268,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'CampusCare incident reporting requires authenticated ALU community credentials. Only authorized campus staff may transition reports from Submitted to In Progress or Resolved.',
+                      'Mend incident reporting requires authenticated ALU community credentials. Only authorized campus staff may transition reports from Submitted to In Progress or Resolved.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,

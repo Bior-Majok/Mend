@@ -162,6 +162,8 @@ class FirestoreService {
     _incidentsStreamController.add(List.unmodifiable(_mockIncidents));
   }
 
+  List<IncidentModel> getInitialIncidents() => List.unmodifiable(_mockIncidents);
+
   Stream<List<IncidentModel>> streamIncidents() {
     final firestore = _firestore;
     if (FirebaseService.isInitialized && firestore != null) {

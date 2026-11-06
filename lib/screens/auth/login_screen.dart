@@ -13,9 +13,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController =
-      TextEditingController(text: 'amina.hassan@alustudent.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
@@ -42,13 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
-  }
-
-  void _fillCredentials(String email, String password) {
-    setState(() {
-      _emailController.text = email;
-      _passwordController.text = password;
-    });
   }
 
   @override
@@ -83,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'CampusCare',
+                        'Mend',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -170,57 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 20),
-
-                  // Quick test accounts
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.lightGreenSurface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFD6E4DA)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '⚡ Quick Test Accounts:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ActionChip(
-                                avatar: const Icon(Icons.school, size: 16),
-                                label: const Text('Student: Amina'),
-                                onPressed: () => _fillCredentials(
-                                  'amina.hassan@alustudent.com',
-                                  'password123',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ActionChip(
-                                avatar: const Icon(Icons.shield, size: 16),
-                                label: const Text('Staff: Estate'),
-                                onPressed: () => _fillCredentials(
-                                  'estate.admin@alueducation.com',
-                                  'password123',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Email input
                   const Text(
@@ -315,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "New to CampusCare? ",
+                        "New to Mend? ",
                         style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                       ),
                       GestureDetector(
