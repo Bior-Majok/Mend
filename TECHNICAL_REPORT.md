@@ -76,11 +76,13 @@ graph TD
 | `category` | String | Category (`Facilities`, `Water`, `Electricity`, `Safety`, `Sanitation`) |
 | `location` | String | Campus facility location (e.g. `Block B - Room 204`) |
 | `description` | String | Detailed report narrative |
+| `priority` | String | Urgency level (`Low`, `Medium`, `High`) for emergency triage |
+| `isAnonymous` | Boolean | True if reporter opted to hide identity on public feeds |
 | `status` | String | `submitted`, `inProgress`, or `resolved` |
 | `reporterId` | String (Foreign Key) | Reference to `users.uid` |
 | `reporterName` | String | Cached display name of student reporter |
 | `reporterEmail`| String | Institutional email of student reporter |
-| `imageUrl` | String (Nullable) | Cloud Storage download URL for incident photograph |
+| `imageUrl` | String (Nullable) | Cloud Storage download URL or Base64 URI for incident photo |
 | `createdAt` | Timestamp / ISO8601 | Incident submission time |
 | `updatedAt` | Timestamp / ISO8601 | Last modification time |
 | `staffNotes` | String (Nullable) | Operational resolution commentary from staff |
@@ -132,13 +134,14 @@ The system enforces access boundaries across both the presentation layer and ser
 ---
 
 ## 6. UI/UX Design Decisions
-1. **Brand Identity:** Palette anchored by ALU purple (`#5A3DC8`) with accessible contrast ratios (WCAG AA compliant).
+1. **Brand Identity:** Palette anchored by deep campus forest green (`#1E3A2B`) and calm sage surfaces (`#F4F8F5`) reflecting campus care and sustainability, with accessible contrast ratios (WCAG AA compliant).
 2. **Status Color Psychology:**
    - **Submitted:** Distinct violet (`#7B5DFF`) signifies new intake.
    - **In Progress:** Warm amber (`#F59E0B`) indicates active intervention.
-   - **Resolved:** Emerald green (`#10B981`) provides immediate visual reassurance.
+   - **Resolved:** Emerald green (`#2E7D32`) provides immediate visual reassurance.
 3. **One-Tap Floating Report Trigger:** Floating circular action button centered on the navigation bar allows instant reporting from any context.
-4. **Visual Timeline Stepper:** Replaces ambiguous status texts with a clear visual journey showing historical timestamps and notes.
+4. **Visual Timeline Stepper:** Replaces ambiguous status texts with a clear visual journey showing historical timestamps and operational notes.
+5. **Urgency & Privacy Signals:** Prominent red badges for `URGENT` high-priority incidents and optional anonymity shields to encourage honest reporting without social anxiety.
 
 ---
 

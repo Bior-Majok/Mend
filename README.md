@@ -11,10 +11,11 @@ A mobile application developed for African Leadership University (ALU) to enable
 
 ## Features
 
-- **Institutional Authentication:** Enforces registration and login with verified `@alustudent.com` and `@alueducation.com` email addresses.
-- **Incident Reporting:** Submit reports with category selection (Facilities, Water, Electricity, Safety, Sanitation), title, description, location, and optional photo attachment.
-- **Real-Time Status Tracking:** Track incidents across three lifecycle stages (`Submitted` → `In Progress` → `Resolved`) with a visual status timeline stepper.
-- **Search & Filtering:** Search incidents by keywords and filter by category or status chips.
+- **Institutional Authentication & Verification:** Enforces registration and login with verified `@alustudent.com` and `@alueducation.com` email addresses, featuring institutional email verification status and resend capabilities.
+- **Incident Reporting with Priority & Privacy:** Submit reports with category selection (Facilities, Water, Electricity, Safety, Sanitation), title, description, location, urgency triage (Low, Medium, High), and anonymous reporting toggle to protect student privacy.
+- **Media Evidence:** Attach photographic proof via camera or gallery with resilient dual-mode image handling (Firebase Storage with seamless on-device fallback).
+- **Real-Time Status Tracking:** Track incidents across three lifecycle stages (`Submitted` → `In Progress` → `Resolved`) with a visual status timeline stepper and audit history.
+- **Search, Filtering & Quick Reset:** Search incidents by keyword with real-time category chips, status filters, and one-tap filter reset.
 - **Role-Based Access Control (RBAC):**
   - **Students:** Can create reports, view all campus incidents, and delete their own reports.
   - **Staff:** Authorized campus staff can update incident statuses and attach operational resolution notes.
