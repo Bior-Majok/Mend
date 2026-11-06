@@ -72,6 +72,28 @@ class AuthService {
     }
   }
 
+  bool get isEmailVerified {
+    final auth = _auth;
+    if (FirebaseService.isInitialized && auth != null && auth.currentUser != null) {
+      return auth.currentUser!.emailVerified;
+    }
+    return true;
+  }
+
+  Future<void> sendEmailVerification() async {
+    final auth = _auth;
+    if (FirebaseService.isInitialized && auth != null && auth.currentUser != null) {
+      await auth.currentUser!.sendEmailVerification();
+    }
+  }
+
+  Future<void> reloadUser() async {
+    final auth = _auth;
+    if (FirebaseService.isInitialized && auth != null && auth.currentUser != null) {
+      await auth.currentUser!.reload();
+    }
+  }
+
   UserModel? get currentUser => _currentMockUser;
 
   Future<UserModel> signUp({

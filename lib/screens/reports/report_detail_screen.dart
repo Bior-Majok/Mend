@@ -250,7 +250,44 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                             ],
                           ),
                         ),
-                        StatusBadge(status: liveIncident.status),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            StatusBadge(status: liveIncident.status),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: liveIncident.priority == 'High'
+                                    ? const Color(0xFFFEE2E2)
+                                    : (liveIncident.priority == 'Medium'
+                                        ? const Color(0xFFFEF3C7)
+                                        : const Color(0xFFE2EFE7)),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: liveIncident.priority == 'High'
+                                      ? const Color(0xFFEF4444)
+                                      : (liveIncident.priority == 'Medium'
+                                          ? const Color(0xFFF59E0B)
+                                          : AppTheme.primaryColor),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                '${liveIncident.priority} Priority',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: liveIncident.priority == 'High'
+                                      ? const Color(0xFFDC2626)
+                                      : (liveIncident.priority == 'Medium'
+                                          ? const Color(0xFFB45309)
+                                          : AppTheme.primaryColor),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     const Divider(height: 24),
@@ -274,18 +311,26 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.person_outline,
+                        Icon(
+                          liveIncident.isAnonymous
+                              ? Icons.visibility_off_outlined
+                              : Icons.person_outline,
                           size: 16,
                           color: AppTheme.textMuted,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'Reported by ${liveIncident.reporterName}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textSecondary,
+                        Expanded(
+                          child: Text(
+                            liveIncident.isAnonymous
+                                ? (isStaff
+                                    ? 'Reported anonymously by ${liveIncident.reporterName} (Staff view)'
+                                    : 'Reported anonymously')
+                                : 'Reported by ${liveIncident.reporterName}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ),
                       ],

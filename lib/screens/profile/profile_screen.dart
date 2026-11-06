@@ -255,24 +255,97 @@ class ProfileScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFD4E2D8)),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Institutional Verification',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: AppTheme.primaryColor,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Institutional Verification',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: authProvider.isEmailVerified
+                                ? const Color(0xFFE8F5E9)
+                                : const Color(0xFFFFF3E0),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: authProvider.isEmailVerified
+                                  ? AppTheme.statusResolvedColor
+                                  : Colors.orange,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                authProvider.isEmailVerified
+                                    ? Icons.verified_user
+                                    : Icons.pending_actions,
+                                size: 14,
+                                color: authProvider.isEmailVerified
+                                    ? AppTheme.statusResolvedColor
+                                    : Colors.orange.shade800,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                authProvider.isEmailVerified ? 'Verified' : 'Pending',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: authProvider.isEmailVerified
+                                      ? AppTheme.statusResolvedColor
+                                      : Colors.orange.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
-                      'Mend incident reporting requires authenticated ALU community credentials. Only authorized campus staff may transition reports from Submitted to In Progress or Resolved.',
-                      style: TextStyle(
+                      authProvider.isEmailVerified
+                          ? 'Your institutional account (${user.email}) is actively verified for campus operations.'
+                          : 'Please confirm your email (${user.email}) to finalize institutional clearance.',
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
                         height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                        side: const BorderSide(color: Color(0xFFD4E2D8)),
+                        visualDensity: VisualDensity.compact,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () async {
+                        await authProvider.resendVerificationEmail();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Verification link sent to ${user.email}'),
+                              backgroundColor: AppTheme.primaryColor,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.mark_email_read_outlined, size: 16),
+                      label: const Text(
+                        'Resend Verification Link',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],

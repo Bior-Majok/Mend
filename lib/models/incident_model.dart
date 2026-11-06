@@ -74,6 +74,8 @@ class IncidentModel {
   final String reporterName;
   final String reporterEmail;
   final String? imageUrl;
+  final String priority; // 'Low', 'Medium', 'High'
+  final bool isAnonymous;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<TimelineEvent> timeline;
@@ -90,6 +92,8 @@ class IncidentModel {
     required this.reporterName,
     required this.reporterEmail,
     this.imageUrl,
+    this.priority = 'Medium',
+    this.isAnonymous = false,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<TimelineEvent>? timeline,
@@ -118,6 +122,8 @@ class IncidentModel {
       'reporterName': reporterName,
       'reporterEmail': reporterEmail,
       'imageUrl': imageUrl,
+      'priority': priority,
+      'isAnonymous': isAnonymous,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'timeline': timeline.map((e) => e.toMap()).toList(),
@@ -138,6 +144,8 @@ class IncidentModel {
       reporterName: map['reporterName'] as String? ?? 'Campus Student',
       reporterEmail: map['reporterEmail'] as String? ?? '',
       imageUrl: map['imageUrl'] as String?,
+      priority: map['priority'] as String? ?? 'Medium',
+      isAnonymous: map['isAnonymous'] as bool? ?? false,
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -162,6 +170,8 @@ class IncidentModel {
     String? reporterName,
     String? reporterEmail,
     String? imageUrl,
+    String? priority,
+    bool? isAnonymous,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<TimelineEvent>? timeline,
@@ -178,6 +188,8 @@ class IncidentModel {
       reporterName: reporterName ?? this.reporterName,
       reporterEmail: reporterEmail ?? this.reporterEmail,
       imageUrl: imageUrl ?? this.imageUrl,
+      priority: priority ?? this.priority,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       timeline: timeline ?? this.timeline,

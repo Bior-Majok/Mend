@@ -22,6 +22,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   String _selectedCategory = 'Facilities';
   String _selectedLocation = 'Block B - Room 204';
+  String _selectedPriority = 'Medium';
+  bool _isAnonymous = false;
   XFile? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -119,6 +121,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       location: _selectedLocation,
       description: _descriptionController.text.trim(),
       reporter: user,
+      priority: _selectedPriority,
+      isAnonymous: _isAnonymous,
       imageFile: _selectedImage,
     );
 
@@ -244,9 +248,86 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     if (val != null) setState(() => _selectedLocation = val);
                   },
                 ),
+                const SizedBox(height: 20),
+
+                // Urgency level
+                const Text(
+                  'Urgency Level',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: ['Low', 'Medium', 'High'].map((level) {
+                    final isSelected = _selectedPriority == level;
+                    Color activeColor = AppTheme.primaryColor;
+                    if (level == 'High') activeColor = const Color(0xFFDC2626);
+                    if (level == 'Medium') activeColor = AppTheme.statusInProgressColor;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(level == 'High' ? 'High / Urgent' : level),
+                        selected: isSelected,
+                        selectedColor: activeColor,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : AppTheme.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedPriority = level);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+
+                // Anonymous reporting switch
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFD4E2D8)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Report Anonymously',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Hide your name from other students on campus boards',
+                              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isAnonymous,
+                        activeColor: AppTheme.primaryColor,
+                        onChanged: (val) => setState(() => _isAnonymous = val),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 22),
 
-                // Add a Photo
+                // Add a photo
                 const Text(
                   'Add a photo (optional)',
                   style: TextStyle(

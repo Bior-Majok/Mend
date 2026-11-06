@@ -157,7 +157,8 @@ class IncidentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _formatRelativeTime(incident.createdAt),
+                            _formatRelativeTime(incident.createdAt) +
+                                (incident.isAnonymous ? ' • Anonymous' : ''),
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppTheme.textMuted,
@@ -172,7 +173,31 @@ class IncidentCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    StatusBadge(status: incident.status, isSmall: true),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (incident.priority == 'High') ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFEF4444), width: 0.8),
+                            ),
+                            child: const Text(
+                              'URGENT',
+                              style: TextStyle(
+                                color: Color(0xFFDC2626),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                        StatusBadge(status: incident.status, isSmall: true),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     Icon(
                       Icons.chevron_right_rounded,

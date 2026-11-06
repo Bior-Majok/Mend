@@ -128,6 +128,8 @@ class IncidentProvider extends ChangeNotifier {
     required String location,
     required String description,
     required UserModel reporter,
+    String priority = 'Medium',
+    bool isAnonymous = false,
     XFile? imageFile,
   }) async {
     _isSubmitting = true;
@@ -150,14 +152,18 @@ class IncidentProvider extends ChangeNotifier {
         reporterName: reporter.fullName,
         reporterEmail: reporter.email,
         imageUrl: uploadedImageUrl,
+        priority: priority,
+        isAnonymous: isAnonymous,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         timeline: [
           TimelineEvent(
             status: IncidentStatus.submitted,
             timestamp: DateTime.now(),
-            note: 'Incident reported by ${reporter.fullName}',
-            updatedBy: reporter.fullName,
+            note: isAnonymous
+                ? 'Incident reported anonymously by student'
+                : 'Incident reported by ${reporter.fullName}',
+            updatedBy: isAnonymous ? 'Anonymous' : reporter.fullName,
           )
         ],
       );

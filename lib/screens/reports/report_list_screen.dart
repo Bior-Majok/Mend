@@ -272,17 +272,17 @@ class _ReportListScreenState extends State<ReportListScreen> {
               child: incidentProvider.isLoading
                   ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
                   : displayList.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.inbox_outlined,
                                 size: 54,
                                 color: AppTheme.textMuted,
                               ),
-                              SizedBox(height: 12),
-                              Text(
+                              const SizedBox(height: 12),
+                              const Text(
                                 'No incident reports found',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -290,10 +290,24 @@ class _ReportListScreenState extends State<ReportListScreen> {
                                   color: AppTheme.primaryColor,
                                 ),
                               ),
-                              SizedBox(height: 6),
-                              Text(
-                                'Try clearing filters or submit a new report.',
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Try clearing filters or search keywords.',
                                 style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  incidentProvider.setSearchQuery('');
+                                  incidentProvider.setStatusFilter('All');
+                                  incidentProvider.setCategoryFilter('All');
+                                },
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text('Reset All Filters'),
                               ),
                             ],
                           ),

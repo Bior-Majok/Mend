@@ -14,6 +14,23 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _currentUser != null;
   bool get isStaff => _currentUser?.isStaff ?? false;
+  bool get isEmailVerified => _authService.isEmailVerified;
+
+  Future<bool> resendVerificationEmail() async {
+    try {
+      await _authService.sendEmailVerification();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> reloadUser() async {
+    await _authService.reloadUser();
+    notifyListeners();
+  }
 
   AuthProvider() {
     _currentUser = _authService.currentUser;
