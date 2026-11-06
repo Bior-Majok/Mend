@@ -95,10 +95,10 @@ graph TD
 }
 ```
 
-### 3.2 Cloud Storage Architecture
-Incident photographs are stored under the path:
-$$\text{Storage Bucket Path: } \texttt{incidents/incident\_\{UUID\}.jpg}$$
-Images are compressed on the device before upload to conserve mobile bandwidth and reduce storage consumption.
+### 3.2 Media & Photograph Storage Architecture
+To accommodate Firebase Spark plan restrictions (where Firebase Storage may enforce billing or credit card requirements), *Mend* incorporates a hybrid image handling strategy:
+1. **Firebase Cloud Storage (Primary):** When active, images are compressed on-device and uploaded to `incidents/incident_{UUID}.jpg`, returning a persistent HTTPS download URL.
+2. **Base64 String Persistence (Alternative):** In accordance with assignment guidelines regarding Firebase payment restrictions, if Cloud Storage is unlinked or blocked, the compressed image is converted into a Base64 URI and stored within the incident document. The UI dynamically detects the format and renders using either `Image.memory()` or `Image.network()`.
 
 ---
 
