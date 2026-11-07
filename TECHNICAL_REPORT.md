@@ -95,6 +95,12 @@ An example timeline entry:
 }
 ```
 
+<p align="center">
+  <img src="docs/screenshots/firebase_console_firestore.png" width="580" alt="Cloud Firestore Console Document" />
+  <br/>
+  <em>Figure 2: Live Cloud Firestore console confirming the incidents collection schema, high-priority triage, on-device Base64 image payload, and real-time synchronization under Bior Majok Aguer's account.</em>
+</p>
+
 ### 3.2 Image handling and storage
 The assignment guidance mentioned that Firebase Storage now asks for payment details on the free Spark plan. Since I didn't want photo attachments to depend on a paid plan, I built two modes into `storage_service.dart`:
 * **Primary mode:** The app tries to upload the compressed image to Firebase Cloud Storage at `incidents/{id}.jpg` and gets back a download URL.
@@ -152,7 +158,7 @@ These screenshots come from the app running on an Android emulator:
   <img src="docs/screenshots/3_report_form.jpg" width="180" alt="Incident form with priority and anonymity options" />
 </p>
 <p align="center">
-  <em>Figure 2: (a) Login screen with the ALU email check, (b) Home dashboard with live summary counters, (c) Incident form with priority and anonymity options.</em>
+  <em>Figure 3: (a) Login screen with the ALU email check, (b) Home dashboard with live summary counters, (c) Incident form with priority and anonymity options.</em>
 </p>
 
 <p align="center">
@@ -163,7 +169,7 @@ These screenshots come from the app running on an Android emulator:
   <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Verification card with active clearance" />
 </p>
 <p align="center">
-  <em>Figure 3: (a) Campus feed showing a new report with a camera photo and the red URGENT badge, (b) Student profile showing the signed-in user (B AGUERKUI, b.aguerkui@alustudent.com), (c) Verification card with the active clearance badge and the role switcher.</em>
+  <em>Figure 4: (a) Campus feed showing a new report with a camera photo and the red URGENT badge, (b) Student profile showing the signed-in user (B AGUERKUI, b.aguerkui@alustudent.com), (c) Verification card with the active clearance badge and the role switcher.</em>
 </p>
 
 ---
