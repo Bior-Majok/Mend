@@ -21,6 +21,8 @@ class ProfileScreen extends StatelessWidget {
     }
 
     final myTotal = incidentProvider.myReportsCount(user.uid);
+    final activeQueueCount =
+        incidentProvider.submittedCount + incidentProvider.inProgressCount;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -204,7 +206,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // My reports link
+              // Role-aware reports link
               ListTile(
                 tileColor: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -217,21 +219,25 @@ class ProfileScreen extends StatelessWidget {
                     color: AppTheme.lightGreenSurface,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.assignment_outlined,
+                  child: Icon(
+                    user.isStaff
+                        ? Icons.admin_panel_settings_outlined
+                        : Icons.assignment_outlined,
                     color: AppTheme.primaryColor,
                   ),
                 ),
-                title: const Text(
-                  'My Submitted Reports',
-                  style: TextStyle(
+                title: Text(
+                  user.isStaff ? 'Campus Triage Queue' : 'My Submitted Reports',
+                  style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     color: AppTheme.primaryColor,
                   ),
                 ),
                 subtitle: Text(
-                  '$myTotal incidents reported by you',
+                  user.isStaff
+                      ? '$activeQueueCount active incidents requiring triage'
+                      : '$myTotal incidents reported by you',
                   style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 trailing: const Icon(Icons.chevron_right, color: AppTheme.primaryColor),
@@ -239,7 +245,9 @@ class ProfileScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ReportListScreen(filterOnlyMine: true),
+                      builder: (_) => ReportListScreen(
+                        filterOnlyMine: !user.isStaff,
+                      ),
                     ),
                   );
                 },

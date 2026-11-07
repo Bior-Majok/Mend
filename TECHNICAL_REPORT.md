@@ -6,7 +6,7 @@
 **Course:** Mobile Application Development — Formative Assignment 2  
 **Format:** IEEE Reference Style  
 **GitHub Repository:** https://github.com/Bior-Majok/Mend.git  
-**Demonstration Video:** [Insert Demo Video Link Here]  
+**Demonstration Video:** https://youtu.be/-Kv_IXppobs  
 
 ---
 

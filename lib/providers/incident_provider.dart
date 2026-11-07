@@ -26,11 +26,11 @@ class IncidentProvider extends ChangeNotifier {
   void _initIncidentsStream() {
     _isLoading = true;
     _subscription = _firestoreService.streamIncidents().listen((data) {
-      _incidents = data;
+      _incidents = List<IncidentModel>.from(data);
       _isLoading = false;
       notifyListeners();
     }, onError: (e) {
-      _incidents = _firestoreService.getInitialIncidents();
+      _incidents = List<IncidentModel>.from(_firestoreService.getInitialIncidents());
       _isLoading = false;
       notifyListeners();
     });
@@ -138,7 +138,11 @@ class IncidentProvider extends ChangeNotifier {
     try {
       String? uploadedImageUrl;
       if (imageFile != null) {
-        uploadedImageUrl = await _storageService.uploadIncidentImage(imageFile);
+        try {
+          uploadedImageUrl = await _storageService.uploadIncidentImage(imageFile);
+        } catch (e) {
+          debugPrint('Error uploading image, proceeding with on-device fallback: $e');
+        }
       }
 
       final newIncident = IncidentModel(
@@ -168,10 +172,16 @@ class IncidentProvider extends ChangeNotifier {
         ],
       );
 
-      await _firestoreService.createIncident(newIncident);
-      if (!_incidents.any((i) => i.id == newIncident.id)) {
-        _incidents.insert(0, newIncident);
+      try {
+        await _firestoreService.createIncident(newIncident);
+      } catch (e) {
+        debugPrint('Firestore service create error: $e');
       }
+
+      _incidents = [
+        newIncident,
+        ..._incidents.where((i) => i.id != newIncident.id),
+      ];
       _isSubmitting = false;
       notifyListeners();
       return true;

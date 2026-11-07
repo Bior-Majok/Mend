@@ -160,10 +160,10 @@ class FirestoreService {
 
   void _emitMockList() {
     _mockIncidents.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    _incidentsStreamController.add(List.unmodifiable(_mockIncidents));
+    _incidentsStreamController.add(List<IncidentModel>.from(_mockIncidents));
   }
 
-  List<IncidentModel> getInitialIncidents() => List.unmodifiable(_mockIncidents);
+  List<IncidentModel> getInitialIncidents() => List<IncidentModel>.from(_mockIncidents);
 
   Stream<List<IncidentModel>> streamIncidents() {
     final firestore = _firestore;

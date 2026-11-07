@@ -51,9 +51,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     try {
       final picked = await _picker.pickImage(
         source: source,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 80,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 60,
       );
       if (picked != null) {
         setState(() => _selectedImage = picked);

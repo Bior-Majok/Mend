@@ -10,7 +10,7 @@ Mend is a centralized mobile application designed for the African Leadership Uni
 * **Email:** [b.aguerkui@alustudent.com](mailto:b.aguerkui@alustudent.com)
 * **Institution:** African Leadership University (ALU), Kigali, Rwanda
 * **Course:** Mobile Application Development — Formative Assignment 2
-* **Demonstration Video:** [Insert Demo Video Link Here]
+* **Demonstration Video:** https://youtu.be/-Kv_IXppobs
 * **Technical Report:** [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md) (Exported as `BiorMajok_Assignment2.pdf`)
 
 ---
