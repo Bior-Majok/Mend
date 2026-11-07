@@ -1,9 +1,10 @@
 # Mend: Campus Incident Reporting Mobile Application
-**Technical Report & Architectural Documentation**  
+Technical Report and Architectural Documentation
+
 **Student Name:** Bior Majok Aguer Kuir  
 **Student Email:** b.aguerkui@alustudent.com  
 **Institution:** African Leadership University (ALU), Kigali, Rwanda  
-**Course:** Mobile Application Development — Formative Assignment 2  
+**Course:** Mobile Application Development, Formative Assignment 2  
 **Format:** IEEE Reference Style  
 **GitHub Repository:** https://github.com/Bior-Majok/Mend.git  
 **Demonstration Video:** https://youtu.be/-Kv_IXppobs  
@@ -11,188 +12,188 @@
 ---
 
 ## Abstract
-In this assignment, I designed and developed *Mend*, a cross-platform mobile application built with Flutter and Firebase for the African Leadership University (ALU) campus in Kigali. The app allows students to report physical campus issues—such as water outages in student residences, broken classroom projectors, power faults, and sanitation concerns—and track them through resolution. To manage access, authentication is restricted to official ALU email accounts (`@alustudent.com` and `@alueducation.com`). The app implements role-based access control (RBAC) so that only authorized estate and facilities staff can update incident statuses and log operational notes. Application state is handled using the Provider pattern to decouple business logic from the user interface. This report documents the architecture, database schema, state management decisions, security model, testing results, and practical challenges solved during development.
+For this assignment I built Mend, a cross-platform mobile app made with Flutter and Firebase for the ALU campus in Kigali. Students can use it to report problems around campus, like a water outage in the residences, a broken projector in a classroom, a power fault, or a sanitation concern, and then follow the report until someone fixes it.
+
+Only people with an official ALU email (@alustudent.com or @alueducation.com) can get in. The app also uses role-based access control (RBAC), so only authorized estate and facilities staff can change an incident's status or add operational notes. I managed the state with the Provider pattern, which keeps the business logic out of the UI code.
+
+In this report I walk through the architecture, the database structure, why I chose Provider, the security model, how I tested the app, and the real problems I ran into and how I solved them.
 
 ---
 
-## 1. Introduction & Campus Problem Statement
-At university campuses like ALU, maintenance issues are often reported through informal channels such as student WhatsApp groups, direct emails, or word-of-mouth. This creates several practical problems:
-1. **Lack of accountability:** Issues are frequently forgotten or lost in chat feeds.
-2. **Duplicate reporting:** Multiple students report the same broken facility (e.g., a burst pipe or broken projector) because there is no central visibility.
-3. **No progress updates:** Students have no way of knowing whether an issue has been received, is being worked on, or has already been resolved by campus technicians.
+## 1. Introduction and Campus Problem Statement
+On most campuses, including ours, maintenance problems get reported in informal ways: a message in a student WhatsApp group, an email to someone, or just telling a friend who knows someone. It's convenient, but it causes a few problems:
+* **Nobody is accountable:** A report can easily get buried in a busy chat and forgotten.
+* **People report the same thing twice:** When a pipe bursts or a projector breaks, several students may report it, because nobody can see what has already been reported.
+* **Students are left guessing:** There's no easy way to tell whether the issue was received, whether someone is working on it, or whether it's already been fixed.
 
-*Mend* directly addresses these challenges by providing:
-* A structured incident reporting form with predefined categories (Facilities, Water, Electricity, Safety, Sanitation), location tags, urgency levels, and photo attachments.
-* An institutional access gate that verifies university community membership.
-* A live tracking feed with a visual status timeline (`Submitted` -> `In Progress` -> `Resolved`).
-* Role-separated permissions ensuring only authorized staff can mark issues as resolved.
+Mend tackles these problems by putting reporting and tracking in one place. It gives students:
+* A structured report form with set categories (Facilities, Water, Electricity, Safety, Sanitation), a location, an urgency level, and photo attachments.
+* An access gate that checks that the user belongs to the university community.
+* A live feed with a visual status timeline that moves from Submitted to In Progress to Resolved.
+* Role-based permissions, so only authorized staff can update statuses and mark issues as resolved.
 
 ---
 
-## 2. System Architecture & Layered Design
-
-I structured the Mend codebase using a four-layer architecture to ensure clean separation of concerns, testability, and maintainability:
+## 2. System Architecture and Layered Design
+I organized the code into four layers. The goal was to keep each part focused on one job, which makes the app easier to read, test, and maintain.
 
 <p align="center">
   <img src="docs/architecture_diagram.png" alt="Mend Clean Layered Architecture" width="550" />
   <br/>
-  <em>Figure 1: Mend Clean Layered Architecture & Data Flow</em>
+  <em>Figure 1: Mend layered architecture and data flow.</em>
 </p>
 
-### Layer Responsibilities
-1. **Presentation Layer (`lib/screens/`, `lib/widgets/`, `lib/theme/`):** Contains all UI widgets. Screens are strictly declarative; they observe state via Provider and dispatch user actions without performing database or network operations directly.
-2. **State Management Layer (`lib/providers/`):** Built on `ChangeNotifier`. `AuthProvider` manages the active user session and role switching. `IncidentProvider` manages the live incident list, active category and status filters, keyword search queries, and summary metrics.
-3. **Service Layer (`lib/services/`):** Encapsulates Firebase Authentication, Cloud Firestore, and image handling. It also provides automatic local fallback persistence so that the app remains functional if the device is offline.
-4. **Domain Model Layer (`lib/models/`):** Contains immutable data classes (`UserModel`, `IncidentModel`, `TimelineEvent`) with `toMap()` and `fromMap()` serialization methods.
+### What each layer does
+* **Presentation layer (`lib/screens/`, `lib/widgets/`, `lib/theme/`):** This holds everything the user sees. The screens show information, listen to state through Provider, and react to taps and input. They don't talk to the database or network directly.
+* **State management layer (`lib/providers/`):** Built on `ChangeNotifier`. `AuthProvider` looks after the signed-in user and role switching. `IncidentProvider` handles the incident list, the category and status filters, keyword search, and the numbers shown on the dashboard.
+* **Service layer (`lib/services/`):** This is where the app talks to Firebase Authentication and Cloud Firestore, and where images are handled. It also has a local fallback, so the app keeps working when the device is offline.
+* **Domain model layer (`lib/models/`):** Holds the immutable data classes (`UserModel`, `IncidentModel`, `TimelineEvent`), each with `toMap()` and `fromMap()` methods for converting to and from Firestore data.
 
 ---
 
-## 3. Database Schema & Backend Implementation
+## 3. Database Schema and Backend Implementation
 
-### 3.1 Cloud Firestore Structure
-
-Data is stored in two root-level collections in Cloud Firestore:
+### 3.1 Cloud Firestore structure [2]
+The data lives in two top-level collections in Cloud Firestore.
 
 #### Collection: `users`
-Stores user profile information created upon registration:
-* `uid` (String, Key): Firebase Authentication UID
-* `email` (String): Institutional email address (`*@alustudent.com` / `*@alueducation.com`)
-* `fullName` (String): Student or staff member's name
-* `role` (String): `'student'` or `'staff'`
-* `department` (String): Academic department or operational unit
-* `campus` (String): Campus location (e.g., *Kigali, Rwanda*)
-* `createdAt` (Timestamp): Account registration date
+Created when someone registers:
+* `uid` (String, key): the Firebase Authentication user ID.
+* `email` (String): the institutional email (`@alustudent.com` or `@alueducation.com`).
+* `fullName` (String): the student's or staff member's full name.
+* `role` (String): either `'student'` or `'staff'`.
+* `department` (String): the academic department or operational unit.
+* `campus` (String): the campus, for example Kigali, Rwanda.
+* `createdAt` (Timestamp): when the account was created.
 
 #### Collection: `incidents`
-Stores all reported campus issues:
-* `id` (String, Key): Unique incident identifier (UUID v4)
-* `title` (String): Short summary of the problem
-* `category` (String): `Facilities`, `Water`, `Electricity`, `Safety`, or `Sanitation`
-* `location` (String): Specific campus location (e.g., *Block B - Room 104*)
-* `description` (String): Full details describing the fault
-* `priority` (String): Urgency level (`Low`, `Medium`, `High`)
-* `isAnonymous` (Boolean): Flag hiding reporter name on public feeds
-* `status` (String): `submitted`, `inProgress`, or `resolved`
-* `reporterId` (String): Foreign key to `users.uid`
-* `reporterName` (String): Name of the student (or "Anonymous Student" if hidden)
-* `reporterEmail` (String): Contact email of the student
-* `imageUrl` (String, Nullable): Cloud Storage URL or compressed Base64 data URI
-* `createdAt` (Timestamp): Submission timestamp
-* `updatedAt` (Timestamp): Timestamp of most recent update
-* `staffNotes` (String, Nullable): Operational commentary added by estate staff
-* `timeline` (Array of Maps): Historical progression log:
-  ```json
-  {
-    "status": "inProgress",
-    "timestamp": "2026-11-06T14:30:00Z",
-    "note": "Plumber dispatched with replacement pipe valve",
-    "updatedBy": "Campus Facilities Lead"
-  }
-  ```
+Every reported problem is stored here:
+* `id` (String, key): a unique ID generated with UUID v4.
+* `title` (String): a short summary of the problem.
+* `category` (String): Facilities, Water, Electricity, Safety, or Sanitation.
+* `location` (String): where on campus the problem is, for example Block B - Room 104.
+* `description` (String): the full explanation of the issue.
+* `priority` (String): `Low`, `Medium`, or `High`.
+* `isAnonymous` (Boolean): whether the reporter's name is hidden on public feeds.
+* `status` (String): `submitted`, `inProgress`, or `resolved`.
+* `reporterId` (String): a reference to `users.uid`.
+* `reporterName` (String): the reporter's name, or `"Anonymous Student"` if they chose anonymity.
+* `reporterEmail` (String): the reporter's contact email.
+* `imageUrl` (String, nullable): a Cloud Storage URL or a compressed Base64 data URI.
+* `createdAt` (Timestamp): when the report was submitted.
+* `updatedAt` (Timestamp): when it was last changed.
+* `staffNotes` (String, nullable): notes added by estate staff.
+* `timeline` (Array of Maps): the history of status changes.
 
-### 3.2 Image Handling & Storage Strategy
-Per the assignment guidance regarding Firebase Storage payment restrictions on free Spark plans, I designed a dual-mode storage engine in `storage_service.dart`:
-1. **Primary Mode:** The service attempts to upload compressed images to Firebase Cloud Storage at `incidents/{id}.jpg` and returns the download URL.
-2. **Fallback Mode:** If Cloud Storage is blocked by billing limits or is unavailable, the image is compressed on-device into a Base64 Data URI and stored directly within the Firestore document. The UI detects the URI format and renders it using either `Image.memory()` or `Image.network()`. This guarantees that image attachments function without requiring a paid credit card plan.
+An example timeline entry:
+```json
+{
+  "status": "inProgress",
+  "timestamp": "2026-11-06T14:30:00Z",
+  "note": "Plumber dispatched with replacement pipe valve",
+  "updatedBy": "Campus Facilities Lead"
+}
+```
 
----
+### 3.2 Image handling and storage
+The assignment guidance mentioned that Firebase Storage now asks for payment details on the free Spark plan. Since I didn't want photo attachments to depend on a paid plan, I built two modes into `storage_service.dart`:
+* **Primary mode:** The app tries to upload the compressed image to Firebase Cloud Storage at `incidents/{id}.jpg` and gets back a download URL.
+* **Fallback mode:** If Cloud Storage isn't available or is blocked by billing, the app compresses the image on the device, turns it into a Base64 data URI, and saves it inside the Firestore document. The UI checks which format it has and shows the image with either `Image.memory()` or `Image.network()`.
 
-## 4. State Management Rationale (Provider Pattern)
-
-The rubric requires implementing a modern Flutter state management approach rather than relying solely on `setState()`. I selected the **Provider** package (`provider: ^6.1.2`) for several key reasons:
-
-1. **Elimination of Prop Drilling:** Passing callbacks and state variables down through multiple widget constructors makes code fragile and hard to read. With Provider, widgets access state directly using `context.read<T>()` and `context.watch<T>()`.
-2. **Targeted Rebuilds:** `setState()` rebuilds the entire widget subtree where it is called. With Provider, only the specific widgets observing a changed value (such as the badge count on the dashboard or the filtered report list) rebuild when `notifyListeners()` is triggered.
-3. **Decoupled Architecture:** Business logic, filtering algorithms, and database queries are completely removed from UI code, allowing isolated testing and cleaner maintenance.
+With this setup, photo attachments work even without a credit card on file.
 
 ---
 
-## 5. Security & Role-Based Access Control (RBAC)
+## 4. Why I Chose Provider for State Management [1]
+The assignment asks for a modern state management approach instead of leaning only on `setState()`. I went with the Provider package (`provider: ^6.1.2`) for three reasons:
+1. **No prop drilling:** Passing callbacks and values through several widget constructors gets messy fast. With Provider, a widget can read the state directly using `context.read<T>()` and `context.watch<T>()`.
+2. **Smaller rebuilds:** When you call `setState()`, the whole widget subtree rebuilds. With Provider, only the widgets that depend on a changed value, like the dashboard counters or the filtered incident list, rebuild when `notifyListeners()` fires.
+3. **Cleaner separation:** Filtering logic and database calls sit outside the UI code, so the app is easier to maintain and each piece can be tested on its own.
 
-Access control is enforced at both the UI layer and the service layer:
+---
+
+## 5. Security and Role-Based Access Control (RBAC)
+Permissions are checked in the UI and in the service layer:
 
 | Capability / Action | Student Role | Campus Facilities Staff |
 | :--- | :---: | :---: |
-| Authenticate with ALU email | Allowed | Allowed |
-| Submit new incident report | Allowed | Allowed |
-| Attach photo evidence (Camera/Gallery) | Allowed | Allowed |
+| Sign in with an ALU email | Allowed | Allowed |
+| Submit a new incident report | Allowed | Allowed |
+| Attach photo evidence (camera or gallery) | Allowed | Allowed |
 | Set priority level (Low/Medium/High) | Allowed | Allowed |
-| Toggle anonymous submission | Allowed | Allowed |
+| Submit reports anonymously | Allowed | Allowed |
 | Browse all campus reports | Allowed | Allowed |
-| Filter by category and status | Allowed | Allowed |
-| View detail and timeline | Allowed | Allowed |
+| Filter reports by category and status | Allowed | Allowed |
+| View incident details and timeline | Allowed | Allowed |
 | Delete own submitted report | Allowed | Allowed |
 | Delete reports submitted by others | **Denied** | Allowed |
-| **Change incident status (`In Progress` / `Resolved`)** | **Denied** | **Allowed** |
+| **Change incident status (In Progress / Resolved)** | **Denied** | **Allowed** |
 | **Write official staff resolution notes** | **Denied** | **Allowed** |
 
-To assist with peer evaluation and live video demonstration, I built a role-switching utility in the Profile screen (`toggleDemoRole()`) that allows an evaluator to switch between student and staff views without having to re-authenticate.
+To make peer evaluation and the video demo easier, I added a role switcher on the Profile screen (`toggleDemoRole()`). It lets an evaluator flip between the student and staff views without signing in again.
 
 ---
 
-## 6. UI/UX Decisions & Product Features
+## 6. UI/UX Decisions and Features
+* **Visual theme:** The app uses deep forest green (`#1E3A2B`) with soft sage surfaces (`#F4F8F5`). I wanted it to feel institutional and calm, and the green fits the campus's focus on sustainability.
+* **Status stepper:** Rather than a plain text label, each incident has a vertical timeline showing when it moved from Submitted to In Progress to Resolved, along with the name of the staff member who handled it.
+* **Priority triage:** Reporters can mark an issue as Low, Medium, or High. High-priority reports get a red URGENT badge in the feed, so estate teams can spot safety hazards quickly.
+* **Anonymous reporting:** Some problems, like hygiene issues in shared restrooms or safety concerns, are awkward to report under your own name. An anonymous switch hides the reporter's name from the public feed, while staff can still trace the report if they need to.
+* **Reset filters button:** If a keyword search combined with category or status filters returns nothing, a Reset All Filters button appears so the user can get back to the full list in one tap.
 
-1. **Visual Theme:** The interface uses deep forest green (`#1E3A2B`) and calm sage surfaces (`#F4F8F5`), creating a consistent institutional look aligned with campus sustainability.
-2. **Status Progression Stepper:** Replaces simple text labels with a vertical audit timeline widget showing exactly when an issue moved from *Submitted* to *In Progress* to *Resolved*, along with the name of the staff member who handled it.
-3. **Emergency Priority Triage:** Students can tag issues as *Low*, *Medium*, or *High*. High-priority items receive a prominent red `URGENT` badge on the feed so estate teams can identify safety hazards immediately.
-4. **Anonymity & Privacy Toggle:** To encourage students to report sensitive issues (such as hygiene problems in shared restrooms or safety hazards) without social discomfort, an anonymous switch hides their name from public feeds while retaining auditability for staff.
-5. **Interactive Filter Reset:** When combining keyword search with category or status filters yields zero results, an intuitive "Reset All Filters" button appears to restore the view with one tap.
-
-### 6.1 Application Interface & Workflow Screenshots
-
-The figures below demonstrate the functional application running on an Android mobile emulator:
+### 6.1 Screenshots
+These screenshots come from the app running on an Android emulator:
 
 <p align="center">
-  <img src="docs/screenshots/1_login_screen.jpg" width="180" alt="Institutional Login Screen" />
+  <img src="docs/screenshots/1_login_screen.jpg" width="180" alt="Login screen with ALU email check" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/2_home_dashboard.jpg" width="180" alt="Home Dashboard & Metrics" />
+  <img src="docs/screenshots/2_home_dashboard.jpg" width="180" alt="Home dashboard with live summary counters" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/3_report_form.jpg" width="180" alt="Incident Submission Form" />
+  <img src="docs/screenshots/3_report_form.jpg" width="180" alt="Incident form with priority and anonymity options" />
 </p>
 <p align="center">
-  <em>Figure 2: (a) Institutional Login with ALU Email Gate, (b) Home Dashboard with Reactive Counters, (c) Incident Submission Form with Priority & Anonymity</em>
+  <em>Figure 2: (a) Login screen with the ALU email check, (b) Home dashboard with live summary counters, (c) Incident form with priority and anonymity options.</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/6_feed_with_urgent_photo.jpg" width="180" alt="Live Feed with Urgent Badge and Photo" />
+  <img src="docs/screenshots/6_feed_with_urgent_photo.jpg" width="180" alt="Campus feed with URGENT badge" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/5_profile_bior.jpg" width="180" alt="Student Profile with Bior Credentials" />
+  <img src="docs/screenshots/5_profile_bior.jpg" width="180" alt="Student profile showing signed-in user" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Profile with Institutional Verification" />
+  <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Verification card with active clearance" />
 </p>
 <p align="center">
-  <em>Figure 3: (a) Campus Feed showing newly submitted report with camera photo evidence and red URGENT priority badge, (b) Student Profile displaying authenticated student identity (B AGUERKUI, b.aguerkui@alustudent.com), (c) Institutional verification card with active clearance badge and role switcher</em>
+  <em>Figure 3: (a) Campus feed showing a new report with a camera photo and the red URGENT badge, (b) Student profile showing the signed-in user (B AGUERKUI, b.aguerkui@alustudent.com), (c) Verification card with the active clearance badge and the role switcher.</em>
 </p>
 
 ---
 
-## 7. Testing Strategy & Quality Assurance
-
-* **Static Analysis:** The project adheres to strict Dart linting rules defined in `analysis_options.yaml`. Running `flutter analyze` produces **0 errors and 0 warnings**.
-* **Automated Unit Testing:** Automated widget and logic tests in `test/widget_test.dart` verify app launch, provider initialization, and UI rendering via `flutter test`.
-* **Offline Resilience:** If network latency occurs or if Firestore API is un-provisioned during grading, the service layer falls back gracefully to in-memory persistence without crashing the application.
+## 7. Testing and Quality Checks
+* **Static analysis:** The project follows the Dart lint rules set in `analysis_options.yaml`, and running `flutter analyze` reports zero errors and zero warnings.
+* **Automated tests:** The tests in `test/widget_test.dart` check that the app launches, that the providers initialize, and that the UI renders. You can run them with `flutter test`.
+* **Offline behavior:** If there's no network connection, or if Firestore hasn't been set up yet while the app is being graded, the service layer switches to in-memory storage so the app keeps running instead of crashing.
 
 ---
 
-## 8. Practical Challenges Encountered & Solutions
+## 8. Challenges I Ran Into and How I Solved Them
 
-1. **Handling Firebase Spark Plan Storage Restrictions:**  
-   *Problem:* Firebase Cloud Storage now prompts for credit card details to enable storage buckets on free Spark plans, which could prevent report submission with photos.  
-   *Solution:* Following facilitator guidance, I implemented an on-device Base64 compression pipeline in `storage_service.dart`. If cloud storage fails, the compressed image string is stored directly in Firestore, allowing photo attachments without paid billing.
+### 1. Firebase Spark plan storage limits
+* **Problem:** Firebase Cloud Storage asks for credit card details before you can enable a storage bucket on the free Spark plan. That could have stopped students from submitting reports with photos.
+* **Solution:** Following the facilitator's guidance, I added an on-device Base64 compression step in `storage_service.dart`. If Cloud Storage doesn't work, the compressed image goes straight into Firestore, so photos still work without paid billing.
 
-2. **Preventing Infinite gRPC Reconnection Loops on Un-provisioned APIs:**  
-   *Problem:* When testing on a newly created Firebase project where Cloud Firestore had not yet been provisioned in the console, the native Android Firestore SDK repeatedly attempted gRPC stream reconnects until throwing a native abort.  
-   *Solution:* I updated `firestore_service.dart` so that when a stream error (e.g. `PERMISSION_DENIED`) is detected, the app immediately cancels the failing gRPC subscription and switches to the local storage fallback, preventing native channel crashes.
+### 2. Endless gRPC reconnection loops
+* **Problem:** While testing on a brand-new Firebase project where I hadn't yet set up Cloud Firestore in the console, the Android Firestore SDK kept trying to reconnect over gRPC until it eventually aborted natively.
+* **Solution:** I changed `firestore_service.dart` to watch for stream errors such as `PERMISSION_DENIED`. When one shows up, the app cancels the failing subscription right away and switches to the local fallback, which stops the native crash.
 
-3. **Restricting Authentication to Institutional ALU Emails:**  
-   *Problem:* Firebase Authentication by default accepts any valid email format (including `@gmail.com` or `@yahoo.com`).  
-   *Solution:* I implemented domain validation in `auth_service.dart` using string boundary checks to reject any registration or login that does not end in `@alustudent.com`, `@alueducation.com`, or `@alu.edu`, displaying descriptive error messages to the user.
+### 3. Limiting sign-in to ALU emails
+* **Problem:** By default, Firebase Authentication accepts any valid email address, including `@gmail.com` and `@yahoo.com`.
+* **Solution:** I added domain validation in `auth_service.dart` that checks how the email ends and rejects any registration or login that doesn't end in `@alustudent.com`, `@alueducation.com`, or `@alu.edu`. The user sees a clear error message explaining why.
 
 ---
 
 ## 9. References (IEEE Style)
 
-[1] Flutter Documentation, "State management with Provider," Google LLC, 2026. [Online]. Available: https://flutter.dev/docs/development/data-and-backend/state-mgmt/simple  
-[2] Firebase Documentation, "Cloud Firestore Data Model and Security Rules," Google Cloud, 2026. [Online]. Available: https://firebase.google.com/docs/firestore/data-model  
+[1] Flutter Documentation, "State management with Provider," Google LLC, 2026. [Online]. Available: https://flutter.dev/docs/development/data-and-backend/state-mgmt/simple   
+[2] Firebase Documentation, "Cloud Firestore Data Model and Security Rules," Google Cloud, 2026. [Online]. Available: https://firebase.google.com/docs/firestore/data-model   
 [3] E. Gamma, R. Helm, R. Johnson, and J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*, Addison-Wesley, 1994.  
 [4] African Leadership University, "Campus Estate and Operations Guidelines," Kigali, Rwanda, 2025.  
