@@ -6,29 +6,32 @@
 **Course:** Mobile Application Development — Formative Assignment 2  
 **Format:** IEEE Reference Style  
 **GitHub Repository:** https://github.com/Bior-Majok/Mend.git  
-**Demonstration Video:** [Insert your 7–10 Min Demo Video Link Here]  
+**Demonstration Video:** [Insert Demo Video Link Here]  
 
 ---
 
 ## Abstract
-*Mend* is a centralized mobile platform designed to bridge the communication and accountability gap between university students and campus administration. Developed using Flutter and Firebase, the application enables students to report physical and infrastructural campus incidents—such as water shortages, electrical failures, damaged furniture, and sanitation issues—with real-time category tagging, location tracking, and photographic evidence. Authorized campus staff utilize role-based access control (RBAC) to triage incidents, update progress timelines, and post resolution notes. This paper presents the end-to-end system architecture, Firebase data schema, state management rationale using the Provider pattern, user access control matrices, and validation methodology.
+In this assignment, I designed and developed *Mend*, a cross-platform mobile application built with Flutter and Firebase for the African Leadership University (ALU) campus in Kigali. The app allows students to report physical campus issues—such as water outages in student residences, broken classroom projectors, power faults, and sanitation concerns—and track them through resolution. To manage access, authentication is restricted to official ALU email accounts (`@alustudent.com` and `@alueducation.com`). The app implements role-based access control (RBAC) so that only authorized estate and facilities staff can update incident statuses and log operational notes. Application state is handled using the Provider pattern to decouple business logic from the user interface. This report documents the architecture, database schema, state management decisions, security model, testing results, and practical challenges solved during development.
 
 ---
 
 ## 1. Introduction & Campus Problem Statement
-Modern higher-education campuses frequently suffer from delayed responses to facility and utility breakdowns due to fragmented communication channels (e.g., informal WhatsApp groups, untracked emails, or physical suggestion boxes). This latency degrades the learning environment, increases administrative overhead, and causes duplicate reporting.
+At university campuses like ALU, maintenance issues are often reported through informal channels such as student WhatsApp groups, direct emails, or word-of-mouth. This creates several practical problems:
+1. **Lack of accountability:** Issues are frequently forgotten or lost in chat feeds.
+2. **Duplicate reporting:** Multiple students report the same broken facility (e.g., a burst pipe or broken projector) because there is no central visibility.
+3. **No progress updates:** Students have no way of knowing whether an issue has been received, is being worked on, or has already been resolved by campus technicians.
 
-*Mend* directly resolves these pain points through:
-1. **Centralized Incident Lifecycle Management:** Capturing issues at the source with structured metadata.
-2. **Institutional Access Control:** Restricting access strictly to verified institutional email domains (`@alustudent.com` and `@alueducation.com`).
-3. **Transparent Progress Tracking:** Providing students with real-time status progression (`Submitted` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved`) through visual timeline steppers.
-4. **Role-Segregated Workflows:** Guaranteeing that only authorized campus staff can transition incident statuses and record operational notes.
+*Mend* directly addresses these challenges by providing:
+* A structured incident reporting form with predefined categories (Facilities, Water, Electricity, Safety, Sanitation), location tags, urgency levels, and photo attachments.
+* An institutional access gate that verifies university community membership.
+* A live tracking feed with a visual status timeline (`Submitted` -> `In Progress` -> `Resolved`).
+* Role-separated permissions ensuring only authorized staff can mark issues as resolved.
 
 ---
 
 ## 2. System Architecture & Layered Design
 
-Mend employs a clean, layered architecture ensuring complete separation of concerns between presentation, business logic, domain models, and external data services:
+I structured the Mend codebase using a four-layer architecture to ensure clean separation of concerns, testability, and maintainability:
 
 <p align="center">
   <img src="docs/architecture_diagram.png" alt="Mend Clean Layered Architecture" width="550" />
@@ -36,122 +39,134 @@ Mend employs a clean, layered architecture ensuring complete separation of conce
   <em>Figure 1: Mend Clean Layered Architecture & Data Flow</em>
 </p>
 
-### Layer Breakdown
-1. **Presentation Layer (`lib/screens/`, `lib/widgets/`, `lib/theme/`):** Built purely with declarative Flutter widgets. UI components do not manage persistent state or make direct network calls; they reactively observe state via `Provider`.
-2. **State Management Layer (`lib/providers/`):** Built on `ChangeNotifier`. Encapsulates presentation logic, manages active incident filters (status, category, search queries), and exposes read-only getters and mutations.
-3. **Service Layer (`lib/services/`):** Contains API and database access interfaces (`FirebaseAuth`, `FirebaseFirestore`, `FirebaseStorage`) alongside resilient local-fallback persistence.
-4. **Domain Model Layer (`lib/models/`):** Strongly typed, immutable data models (`UserModel`, `IncidentModel`, `TimelineEvent`) featuring bidirectional serialization (`toMap` / `fromMap`).
+### Layer Responsibilities
+1. **Presentation Layer (`lib/screens/`, `lib/widgets/`, `lib/theme/`):** Contains all UI widgets. Screens are strictly declarative; they observe state via Provider and dispatch user actions without performing database or network operations directly.
+2. **State Management Layer (`lib/providers/`):** Built on `ChangeNotifier`. `AuthProvider` manages the active user session and role switching. `IncidentProvider` manages the live incident list, active category and status filters, keyword search queries, and summary metrics.
+3. **Service Layer (`lib/services/`):** Encapsulates Firebase Authentication, Cloud Firestore, and image handling. It also provides automatic local fallback persistence so that the app remains functional if the device is offline.
+4. **Domain Model Layer (`lib/models/`):** Contains immutable data classes (`UserModel`, `IncidentModel`, `TimelineEvent`) with `toMap()` and `fromMap()` serialization methods.
 
 ---
 
-## 3. Firebase Data Schema & Backend Workflow
+## 3. Database Schema & Backend Implementation
 
-### 3.1 Cloud Firestore Collections
+### 3.1 Cloud Firestore Structure
+
+Data is stored in two root-level collections in Cloud Firestore:
 
 #### Collection: `users`
-| Field Name | Type | Description |
-| :--- | :--- | :--- |
-| `uid` | String (Primary Key) | Firebase Authentication user identifier |
-| `email` | String | Institutional email (`*@alustudent.com` / `*@alueducation.com`) |
-| `fullName` | String | User's full legal name |
-| `role` | String | `'student'` or `'staff'` |
-| `department`| String | Academic or operational unit (e.g. *Computer Science*) |
-| `campus` | String | University campus location (e.g. *Kigali, Rwanda*) |
-| `createdAt` | Timestamp / ISO8601 | Account creation timestamp |
+Stores user profile information created upon registration:
+* `uid` (String, Key): Firebase Authentication UID
+* `email` (String): Institutional email address (`*@alustudent.com` / `*@alueducation.com`)
+* `fullName` (String): Student or staff member's name
+* `role` (String): `'student'` or `'staff'`
+* `department` (String): Academic department or operational unit
+* `campus` (String): Campus location (e.g., *Kigali, Rwanda*)
+* `createdAt` (Timestamp): Account registration date
 
 #### Collection: `incidents`
-| Field Name | Type | Description |
-| :--- | :--- | :--- |
-| `id` | String (UUID) | Unique incident document identifier |
-| `title` | String | Brief title summarizing the issue |
-| `category` | String | Category (`Facilities`, `Water`, `Electricity`, `Safety`, `Sanitation`) |
-| `location` | String | Campus facility location (e.g. `Block B - Room 204`) |
-| `description` | String | Detailed report narrative |
-| `priority` | String | Urgency level (`Low`, `Medium`, `High`) for emergency triage |
-| `isAnonymous` | Boolean | True if reporter opted to hide identity on public feeds |
-| `status` | String | `submitted`, `inProgress`, or `resolved` |
-| `reporterId` | String (Foreign Key) | Reference to `users.uid` |
-| `reporterName` | String | Cached display name of student reporter |
-| `reporterEmail`| String | Institutional email of student reporter |
-| `imageUrl` | String (Nullable) | Cloud Storage download URL or Base64 URI for incident photo |
-| `createdAt` | Timestamp / ISO8601 | Incident submission time |
-| `updatedAt` | Timestamp / ISO8601 | Last modification time |
-| `staffNotes` | String (Nullable) | Operational resolution commentary from staff |
-| `timeline` | Array of Maps | Historical audit trail of status transitions |
+Stores all reported campus issues:
+* `id` (String, Key): Unique incident identifier (UUID v4)
+* `title` (String): Short summary of the problem
+* `category` (String): `Facilities`, `Water`, `Electricity`, `Safety`, or `Sanitation`
+* `location` (String): Specific campus location (e.g., *Block B - Room 104*)
+* `description` (String): Full details describing the fault
+* `priority` (String): Urgency level (`Low`, `Medium`, `High`)
+* `isAnonymous` (Boolean): Flag hiding reporter name on public feeds
+* `status` (String): `submitted`, `inProgress`, or `resolved`
+* `reporterId` (String): Foreign key to `users.uid`
+* `reporterName` (String): Name of the student (or "Anonymous Student" if hidden)
+* `reporterEmail` (String): Contact email of the student
+* `imageUrl` (String, Nullable): Cloud Storage URL or compressed Base64 data URI
+* `createdAt` (Timestamp): Submission timestamp
+* `updatedAt` (Timestamp): Timestamp of most recent update
+* `staffNotes` (String, Nullable): Operational commentary added by estate staff
+* `timeline` (Array of Maps): Historical progression log:
+  ```json
+  {
+    "status": "inProgress",
+    "timestamp": "2026-11-06T14:30:00Z",
+    "note": "Plumber dispatched with replacement pipe valve",
+    "updatedBy": "Campus Facilities Lead"
+  }
+  ```
 
-```json
-{
-  "status": "inProgress",
-  "timestamp": "2026-10-18T14:30:00Z",
-  "note": "Technician dispatched with replacement projector cable",
-  "updatedBy": "Campus IT Operations"
-}
-```
-
-### 3.2 Media & Photograph Storage Architecture
-To accommodate Firebase Spark plan restrictions (where Firebase Storage may enforce billing or credit card requirements), *Mend* incorporates a hybrid image handling strategy:
-1. **Firebase Cloud Storage (Primary):** When active, images are compressed on-device and uploaded to `incidents/incident_{UUID}.jpg`, returning a persistent HTTPS download URL.
-2. **Base64 String Persistence (Alternative):** In accordance with assignment guidelines regarding Firebase payment restrictions, if Cloud Storage is unlinked or blocked, the compressed image is converted into a Base64 URI and stored within the incident document. The UI dynamically detects the format and renders using either `Image.memory()` or `Image.network()`.
+### 3.2 Image Handling & Storage Strategy
+Per the assignment guidance regarding Firebase Storage payment restrictions on free Spark plans, I designed a dual-mode storage engine in `storage_service.dart`:
+1. **Primary Mode:** The service attempts to upload compressed images to Firebase Cloud Storage at `incidents/{id}.jpg` and returns the download URL.
+2. **Fallback Mode:** If Cloud Storage is blocked by billing limits or is unavailable, the image is compressed on-device into a Base64 Data URI and stored directly within the Firestore document. The UI detects the URI format and renders it using either `Image.memory()` or `Image.network()`. This guarantees that image attachments function without requiring a paid credit card plan.
 
 ---
 
 ## 4. State Management Rationale (Provider Pattern)
 
-The project leverages the **Provider** package (`provider: ^6.1.2`) recommended by the Flutter core team.
+The rubric requires implementing a modern Flutter state management approach rather than relying solely on `setState()`. I selected the **Provider** package (`provider: ^6.1.2`) for several key reasons:
 
-### Justification:
-* **Separation of Concerns:** Eliminates anti-patterns such as passing callbacks down deeply nested widget trees.
-* **Granular Rebuilds:** Using `context.watch<T>()` and `context.select<T, R>()` guarantees that only widgets bound to modified slices of state rebuild, preserving 60fps UI performance.
-* **Testability:** Decouples UI widgets from business logic, allowing mocked services and unit testing of state controllers.
+1. **Elimination of Prop Drilling:** Passing callbacks and state variables down through multiple widget constructors makes code fragile and hard to read. With Provider, widgets access state directly using `context.read<T>()` and `context.watch<T>()`.
+2. **Targeted Rebuilds:** `setState()` rebuilds the entire widget subtree where it is called. With Provider, only the specific widgets observing a changed value (such as the badge count on the dashboard or the filtered report list) rebuild when `notifyListeners()` is triggered.
+3. **Decoupled Architecture:** Business logic, filtering algorithms, and database queries are completely removed from UI code, allowing isolated testing and cleaner maintenance.
 
 ---
 
 ## 5. Security & Role-Based Access Control (RBAC)
 
-The system enforces access boundaries across both the presentation layer and service calls:
+Access control is enforced at both the UI layer and the service layer:
 
-| Action / Capability | Student Role | Campus Staff Role |
+| Capability / Action | Student Role | Campus Facilities Staff |
 | :--- | :---: | :---: |
-| Authenticate with ALU email | Yes | Yes |
-| Submit new incident report | Yes | Yes |
-| Attach photograph from Camera/Gallery | Yes | Yes |
-| Browse campus incident reports | Yes | Yes |
-| Filter by category and status | Yes | Yes |
-| View incident detail & timeline | Yes | Yes |
-| Delete incident report | Own reports only | Any report |
+| Authenticate with ALU email | Allowed | Allowed |
+| Submit new incident report | Allowed | Allowed |
+| Attach photo evidence (Camera/Gallery) | Allowed | Allowed |
+| Set priority level (Low/Medium/High) | Allowed | Allowed |
+| Toggle anonymous submission | Allowed | Allowed |
+| Browse all campus reports | Allowed | Allowed |
+| Filter by category and status | Allowed | Allowed |
+| View detail and timeline | Allowed | Allowed |
+| Delete own submitted report | Allowed | Allowed |
+| Delete reports submitted by others | **Denied** | Allowed |
 | **Change incident status (`In Progress` / `Resolved`)** | **Denied** | **Allowed** |
-| **Add staff resolution notes** | **Denied** | **Allowed** |
+| **Write official staff resolution notes** | **Denied** | **Allowed** |
+
+To assist with peer evaluation and live video demonstration, I built a role-switching utility in the Profile screen (`toggleDemoRole()`) that allows an evaluator to switch between student and staff views without having to re-authenticate.
 
 ---
 
-## 6. UI/UX Design Decisions
-1. **Brand Identity:** Palette anchored by deep campus forest green (`#1E3A2B`) and calm sage surfaces (`#F4F8F5`) reflecting campus care and sustainability, with accessible contrast ratios (WCAG AA compliant).
-2. **Status Color Psychology:**
-   - **Submitted:** Distinct violet (`#7B5DFF`) signifies new intake.
-   - **In Progress:** Warm amber (`#F59E0B`) indicates active intervention.
-   - **Resolved:** Emerald green (`#2E7D32`) provides immediate visual reassurance.
-3. **One-Tap Floating Report Trigger:** Floating circular action button centered on the navigation bar allows instant reporting from any context.
-4. **Visual Timeline Stepper:** Replaces ambiguous status texts with a clear visual journey showing historical timestamps and operational notes.
-5. **Urgency & Privacy Signals:** Prominent red badges for `URGENT` high-priority incidents and optional anonymity shields to encourage honest reporting without social anxiety.
+## 6. UI/UX Decisions & Product Features
+
+1. **Visual Theme:** The interface uses deep forest green (`#1E3A2B`) and calm sage surfaces (`#F4F8F5`), creating a consistent institutional look aligned with campus sustainability.
+2. **Status Progression Stepper:** Replaces simple text labels with a vertical audit timeline widget showing exactly when an issue moved from *Submitted* to *In Progress* to *Resolved*, along with the name of the staff member who handled it.
+3. **Emergency Priority Triage:** Students can tag issues as *Low*, *Medium*, or *High*. High-priority items receive a prominent red `URGENT` badge on the feed so estate teams can identify safety hazards immediately.
+4. **Anonymity & Privacy Toggle:** To encourage students to report sensitive issues (such as hygiene problems in shared restrooms or safety hazards) without social discomfort, an anonymous switch hides their name from public feeds while retaining auditability for staff.
+5. **Interactive Filter Reset:** When combining keyword search with category or status filters yields zero results, an intuitive "Reset All Filters" button appears to restore the view with one tap.
 
 ---
 
 ## 7. Testing Strategy & Quality Assurance
-* **Static Analysis:** Executed `flutter analyze` against strict lint rules (`package:flutter_lints`), ensuring **0 errors** and clean formatting.
-* **Automated Unit & Widget Testing:** Validated widget rendering, stream event emissions, and authentication state switches via `flutter test`.
-* **Resilient Dual-Mode Design:** Built-in automatic fallback ensures that if network latency or Google Cloud configuration issues occur during testing, the app degrades gracefully to secure in-memory persistence without crashing.
+
+* **Static Analysis:** The project adheres to strict Dart linting rules defined in `analysis_options.yaml`. Running `flutter analyze` produces **0 errors and 0 warnings**.
+* **Automated Unit Testing:** Automated widget and logic tests in `test/widget_test.dart` verify app launch, provider initialization, and UI rendering via `flutter test`.
+* **Offline Resilience:** If network latency occurs or if Firestore API is un-provisioned during grading, the service layer falls back gracefully to in-memory persistence without crashing the application.
 
 ---
 
-## 8. Challenges Encountered & Lessons Learned
-1. **Real-Time State Synchronization:** Managing asynchronous transitions between mobile local state and Firebase without causing UI flicker when slow campus Wi-Fi delayed Firestore snapshot updates.
-2. **Asynchronous Image Upload Pipelines:** Handling network drops during binary photo uploads required local caching and fallback serialization to prevent student report loss.
-3. **Institutional Domain Enforcement:** Designing robust string boundary validation to enforce ALU student (@alustudent.com) and staff (@alueducation.com) domains while blocking public email providers.
+## 8. Practical Challenges Encountered & Solutions
+
+1. **Handling Firebase Spark Plan Storage Restrictions:**  
+   *Problem:* Firebase Cloud Storage now prompts for credit card details to enable storage buckets on free Spark plans, which could prevent report submission with photos.  
+   *Solution:* Following facilitator guidance, I implemented an on-device Base64 compression pipeline in `storage_service.dart`. If cloud storage fails, the compressed image string is stored directly in Firestore, allowing photo attachments without paid billing.
+
+2. **Preventing Infinite gRPC Reconnection Loops on Un-provisioned APIs:**  
+   *Problem:* When testing on a newly created Firebase project where Cloud Firestore had not yet been provisioned in the console, the native Android Firestore SDK repeatedly attempted gRPC stream reconnects until throwing a native abort.  
+   *Solution:* I updated `firestore_service.dart` so that when a stream error (e.g. `PERMISSION_DENIED`) is detected, the app immediately cancels the failing gRPC subscription and switches to the local storage fallback, preventing native channel crashes.
+
+3. **Restricting Authentication to Institutional ALU Emails:**  
+   *Problem:* Firebase Authentication by default accepts any valid email format (including `@gmail.com` or `@yahoo.com`).  
+   *Solution:* I implemented domain validation in `auth_service.dart` using string boundary checks to reject any registration or login that does not end in `@alustudent.com`, `@alueducation.com`, or `@alu.edu`, displaying descriptive error messages to the user.
 
 ---
 
 ## 9. References (IEEE Style)
-1. Flutter Documentation, "State management with Provider," Google LLC, 2026. [Online]. Available: https://flutter.dev/docs/development/data-and-backend/state-mgmt/simple
-2. Firebase Documentation, "Cloud Firestore Data Model and Security Rules," Google Cloud, 2026. [Online]. Available: https://firebase.google.com/docs/firestore/data-model
-3. E. Gamma, R. Helm, R. Johnson, and J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*, Addison-Wesley, 1994.
-4. African Leadership University, "Campus Estate and Health & Safety Operational Guidelines," Kigali, Rwanda, 2025.
+
+[1] Flutter Documentation, "State management with Provider," Google LLC, 2026. [Online]. Available: https://flutter.dev/docs/development/data-and-backend/state-mgmt/simple  
+[2] Firebase Documentation, "Cloud Firestore Data Model and Security Rules," Google Cloud, 2026. [Online]. Available: https://firebase.google.com/docs/firestore/data-model  
+[3] E. Gamma, R. Helm, R. Johnson, and J. Vlissides, *Design Patterns: Elements of Reusable Object-Oriented Software*, Addison-Wesley, 1994.  
+[4] African Leadership University, "Campus Estate and Operations Guidelines," Kigali, Rwanda, 2025.  
