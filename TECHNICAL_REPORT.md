@@ -156,12 +156,12 @@ The figures below demonstrate the functional application running on an Android m
 <p align="center">
   <img src="docs/screenshots/6_feed_with_urgent_photo.jpg" width="180" alt="Live Feed with Urgent Badge and Photo" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/4_feed_reset_filter.jpg" width="180" alt="Search Feed & Filter Reset" />
+  <img src="docs/screenshots/5_profile_bior.jpg" width="180" alt="Student Profile with Bior Credentials" />
   &nbsp;&nbsp;
-  <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Profile & Institutional Verification" />
+  <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Profile with Institutional Verification" />
 </p>
 <p align="center">
-  <em>Figure 3: (a) Campus Incidents Feed displaying newly submitted report with camera photo evidence and red URGENT priority badge, (b) Empty search state with quick filter reset button, (c) Profile screen with institutional email verification badge and role switcher</em>
+  <em>Figure 3: (a) Campus Feed showing newly submitted report with camera photo evidence and red URGENT priority badge, (b) Student Profile displaying authenticated student identity (B AGUERKUI, b.aguerkui@alustudent.com), (c) Institutional verification card with active clearance badge and role switcher</em>
 </p>
 
 ---
