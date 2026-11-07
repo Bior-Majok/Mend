@@ -138,6 +138,30 @@ To assist with peer evaluation and live video demonstration, I built a role-swit
 4. **Anonymity & Privacy Toggle:** To encourage students to report sensitive issues (such as hygiene problems in shared restrooms or safety hazards) without social discomfort, an anonymous switch hides their name from public feeds while retaining auditability for staff.
 5. **Interactive Filter Reset:** When combining keyword search with category or status filters yields zero results, an intuitive "Reset All Filters" button appears to restore the view with one tap.
 
+### 6.1 Application Interface & Workflow Screenshots
+
+The figures below demonstrate the functional application running on an Android mobile emulator:
+
+<p align="center">
+  <img src="docs/screenshots/1_login_screen.jpg" width="180" alt="Institutional Login Screen" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/2_home_dashboard.jpg" width="180" alt="Home Dashboard & Metrics" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/3_report_form.jpg" width="180" alt="Incident Submission Form" />
+</p>
+<p align="center">
+  <em>Figure 2: (a) Institutional Login with ALU Email Gate, (b) Home Dashboard with Reactive Counters, (c) Incident Submission Form with Priority & Anonymity</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/4_feed_reset_filter.jpg" width="180" alt="Search Feed & Filter Reset" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Profile & Institutional Verification" />
+</p>
+<p align="center">
+  <em>Figure 3: (a) Empty Search State with Quick Filter Reset Button, (b) Profile Screen with Institutional Email Verification Badge & Role Switcher</em>
+</p>
+
 ---
 
 ## 7. Testing Strategy & Quality Assurance
