@@ -49,3 +49,4 @@ app.*.map.json
 
 # Local preparation guides
 DEMO_VIDEO_GUIDE.md
+*.pdf
