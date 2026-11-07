@@ -1,17 +1,10 @@
 # Mend — Campus Incident Reporting Mobile App
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.13+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20Firestore%20%7C%20Storage-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
-[![State Management](https://img.shields.io/badge/State%20Management-Provider-5C6BC0)](https://pub.dev/packages/provider)
-[![Tests](https://img.shields.io/badge/Tests-All%20Passed-success)](#testing--quality-assurance)
-[![Analysis](https://img.shields.io/badge/flutter%20analyze-0%20issues-success)](#testing--quality-assurance)
-
-**Mend** is a centralized mobile application designed for the **African Leadership University (ALU)** campus community in Kigali, Rwanda. It connects students and campus facilities staff to report, track, triage, and resolve physical and infrastructural campus incidents (including water shortages, power outages, damaged classroom equipment, sanitation concerns, and safety hazards) with real-time updates and full accountability.
+Mend is a centralized mobile application designed for the African Leadership University (ALU) campus community in Kigali, Rwanda. It connects students and campus facilities staff to report, track, triage, and resolve physical and infrastructural campus incidents (including water shortages, power outages, damaged classroom equipment, sanitation concerns, and safety hazards) with real-time updates and full accountability.
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 
 * **Author:** Bior Majok Aguer Kuir
 * **Email:** [b.aguerkui@alustudent.com](mailto:b.aguerkui@alustudent.com)
@@ -22,7 +15,7 @@
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 ### 1. Institutional Authentication & Verification
 * **Domain Validation:** Restricts registration and login strictly to authorized university domains (`@alustudent.com` and `@alueducation.com`), blocking unverified third-party email addresses.
@@ -30,12 +23,12 @@
 
 ### 2. Incident Reporting & Triage
 * **Structured Categories:** Facilities, Water, Electricity, Safety, and Sanitation.
-* **Urgency Triage (Priority Level):** Allows reporters to specify urgency (`Low`, `Medium`, `High`), highlighting high-priority hazards with a red **`URGENT`** badge on feeds.
+* **Urgency Triage (Priority Level):** Allows reporters to specify urgency (`Low`, `Medium`, `High`), highlighting high-priority hazards with a red **URGENT** badge on feeds.
 * **Student Privacy (Anonymity Toggle):** Students can submit sensitive incident reports anonymously to prevent peer retaliation or social pressure while keeping the report actionable for staff.
 * **Photographic Evidence:** Attach photos from device camera or photo gallery. Includes a resilient dual-mode storage engine (Firebase Storage with seamless on-device Base64 fallback per Spark plan guidance).
 
 ### 3. Real-Time Tracking & Audit History
-* **Lifecycle Stepper:** Tracks reports through three standardized stages: `Submitted` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved`.
+* **Lifecycle Stepper:** Tracks reports through three standardized stages: `Submitted` -> `In Progress` -> `Resolved`.
 * **Historical Audit Trail:** Stores a chronological timeline of transitions, including timestamps, actor names, and staff resolution notes.
 
 ### 4. Search, Filtering & Quick Reset
@@ -50,7 +43,7 @@
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 Mend follows a clean layered architecture, completely separating user interface widgets from state management, business rules, and external backend services.
 
@@ -62,13 +55,13 @@ Mend follows a clean layered architecture, completely separating user interface 
 
 ### Layer Rationale
 1. **Presentation (`lib/screens/`, `lib/widgets/`):** Declarative, reactive widgets built with Flutter. Screens never execute raw network requests or manage persistent storage directly.
-2. **State Management (`lib/providers/`):** Powered by Flutter's official `Provider` pattern (`ChangeNotifier`). Manages global authentication, active incident filters, search queries, and dynamic summary counts.
+2. **State Management (`lib/providers/`):** Powered by Flutter's official Provider pattern (`ChangeNotifier`). Manages global authentication, active incident filters, search queries, and dynamic summary counts.
 3. **Services (`lib/services/`):** Interfaces with `firebase_auth`, `cloud_firestore`, and `firebase_storage`. Incorporates automatic local fallback to ensure zero app crashes if offline or un-provisioned.
 4. **Models (`lib/models/`):** Immutable domain models (`UserModel`, `IncidentModel`, `TimelineEvent`) featuring bidirectional serialization (`toMap` / `fromMap`).
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```text
 lib/
@@ -110,25 +103,25 @@ lib/
 
 ---
 
-## 🔒 Role-Based Access Control (RBAC) Matrix
+## Role-Based Access Control (RBAC) Matrix
 
 | Capability / Workflow | Student Role | Campus Facilities Staff |
 | :--- | :---: | :---: |
-| Authenticate with ALU credentials | ✅ Allowed | ✅ Allowed |
-| Submit new incident report | ✅ Allowed | ✅ Allowed |
-| Attach photo evidence (Camera/Gallery) | ✅ Allowed | ✅ Allowed |
-| Select priority level (Low/Med/High) | ✅ Allowed | ✅ Allowed |
-| Toggle anonymous submission | ✅ Allowed | ✅ Allowed |
-| Browse public incident feed | ✅ Allowed | ✅ Allowed |
-| Search & filter incidents | ✅ Allowed | ✅ Allowed |
-| View incident detail & timeline | ✅ Allowed | ✅ Allowed |
-| Delete incident report | ✅ Own reports only | ✅ Any report |
-| **Change incident status (`In Progress` / `Resolved`)** | ❌ **Denied** | ✅ **Allowed** |
-| **Add staff resolution notes** | ❌ **Denied** | ✅ **Allowed** |
+| Authenticate with ALU credentials | Allowed | Allowed |
+| Submit new incident report | Allowed | Allowed |
+| Attach photo evidence (Camera/Gallery) | Allowed | Allowed |
+| Select priority level (Low/Med/High) | Allowed | Allowed |
+| Toggle anonymous submission | Allowed | Allowed |
+| Browse public incident feed | Allowed | Allowed |
+| Search & filter incidents | Allowed | Allowed |
+| View incident detail & timeline | Allowed | Allowed |
+| Delete incident report | Own reports only | Any report |
+| Change incident status (`In Progress` / `Resolved`) | Denied | Allowed |
+| Add staff resolution notes | Denied | Allowed |
 
 ---
 
-## 🗄️ Database Schema (Cloud Firestore)
+## Database Schema (Cloud Firestore)
 
 ### Collection: `users`
 * `uid` *(string)*: Firebase Auth user UID
@@ -159,23 +152,23 @@ lib/
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 * **Static Analysis:**
   ```bash
   flutter analyze
   ```
-  *Result:* **No issues found! (0 errors, 0 warnings)**.
+  *Result:* No issues found! (0 errors, 0 warnings).
 * **Unit & Widget Testing:**
   ```bash
   flutter test
   ```
-  *Result:* **All tests passed!**.
+  *Result:* All tests passed!
 * **Fault-Tolerant Offline Fallback:** If internet latency or Google Cloud API provisioning delays occur during grading, the app automatically transitions to local persistent memory without crashing or interrupting user workflows.
 
 ---
 
-## 💻 Getting Started & Installation
+## Getting Started & Installation
 
 ### Prerequisites
 * Flutter SDK (3.13 or higher)
@@ -209,17 +202,17 @@ lib/
 
 ---
 
-## 🔑 Test Accounts for Evaluation
+## Test Accounts for Evaluation
 
-You can use the built-in **Role Switcher** in the Profile screen or sign in with either account:
+You can use the built-in Role Switcher in the Profile screen or sign in with either account:
 
 | Account Type | Email Address | Password | Role |
 | :--- | :--- | :--- | :--- |
-| **Student** | `amina.hassan@alustudent.com` | `password123` | Student (Computer Science) |
-| **Campus Staff** | `estate.admin@alueducation.com` | `password123` | Staff (Facilities & Operations) |
+| Student | `amina.hassan@alustudent.com` | `password123` | Student (Computer Science) |
+| Campus Staff | `estate.admin@alueducation.com` | `password123` | Staff (Facilities & Operations) |
 
 ---
 
-## 📄 License & Academic Integrity
+## License & Academic Integrity
 
-Developed by **Bior Majok Aguer Kuir** as an individual submission for **Mobile Application Development (Formative Assignment 2)** at African Leadership University. All code and documentation are original implementations conforming to university academic standards.
+Developed by Bior Majok Aguer Kuir as an individual submission for Mobile Application Development (Formative Assignment 2) at African Leadership University. All code and documentation are original implementations conforming to university academic standards.
