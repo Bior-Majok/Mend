@@ -169,6 +169,9 @@ class IncidentProvider extends ChangeNotifier {
       );
 
       await _firestoreService.createIncident(newIncident);
+      if (!_incidents.any((i) => i.id == newIncident.id)) {
+        _incidents.insert(0, newIncident);
+      }
       _isSubmitting = false;
       notifyListeners();
       return true;

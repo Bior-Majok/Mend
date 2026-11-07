@@ -215,9 +215,11 @@ class FirestoreService {
     if (!_useMock && FirebaseService.isInitialized && firestore != null) {
       try {
         final docRef = firestore.collection('incidents').doc(incident.id);
-        await docRef.set(incident.toMap());
+        await docRef.set(incident.toMap()).timeout(const Duration(milliseconds: 2000));
+        _mockIncidents.insert(0, incident);
+        _emitMockList();
       } catch (e) {
-        debugPrint('Firestore write error: $e');
+        debugPrint('Firestore write error/timeout, using local store: $e');
         _mockIncidents.insert(0, incident);
         _emitMockList();
       }
@@ -250,9 +252,10 @@ class FirestoreService {
           'updatedAt': now.toIso8601String(),
           'staffNotes': staffNotes,
           'timeline': FieldValue.arrayUnion([newEvent.toMap()]),
-        });
+        }).timeout(const Duration(milliseconds: 2000));
+        _updateMockStatus(incidentId, newStatus, newEvent, staffNotes);
       } catch (e) {
-        debugPrint('Firestore update error: $e');
+        debugPrint('Firestore update error/timeout: $e');
         _updateMockStatus(incidentId, newStatus, newEvent, staffNotes);
       }
     } else {
@@ -284,7 +287,9 @@ class FirestoreService {
     final firestore = _firestore;
     if (!_useMock && FirebaseService.isInitialized && firestore != null) {
       try {
-        await firestore.collection('incidents').doc(incidentId).delete();
+        await firestore.collection('incidents').doc(incidentId).delete().timeout(const Duration(milliseconds: 2000));
+        _mockIncidents.removeWhere((item) => item.id == incidentId);
+        _emitMockList();
       } catch (e) {
         _mockIncidents.removeWhere((item) => item.id == incidentId);
         _emitMockList();
