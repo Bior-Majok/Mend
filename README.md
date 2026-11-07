@@ -54,20 +54,11 @@
 
 Mend follows a clean layered architecture, completely separating user interface widgets from state management, business rules, and external backend services.
 
-```mermaid
-graph TD
-    UI["Presentation Layer<br/>(Screens, Reusable Widgets, AppTheme)"]
-    Provider["State Management Layer<br/>(AuthProvider, IncidentProvider)"]
-    Service["Service & Data Access Layer<br/>(AuthService, FirestoreService, StorageService)"]
-    Backend["Backend Layer<br/>(Firebase Auth, Cloud Firestore, Cloud Storage)"]
-
-    UI -->|Dispatches Actions / Observes State| Provider
-    Provider -->|Calls Async Methods / Subscribes to Streams| Service
-    Service -->|CRUD / Media Operations| Backend
-    Backend -.->|Real-time Snapshot Streams| Service
-    Service -.->|Emits Updates| Provider
-    Provider -.->|Rebuilds Consuming Widgets| UI
-```
+<p align="center">
+  <img src="docs/architecture_diagram.png" alt="Mend Clean Layered Architecture" width="550" />
+  <br/>
+  <em>Figure 1: Mend Clean Layered Architecture & Data Flow</em>
+</p>
 
 ### Layer Rationale
 1. **Presentation (`lib/screens/`, `lib/widgets/`):** Declarative, reactive widgets built with Flutter. Screens never execute raw network requests or manage persistent storage directly.
