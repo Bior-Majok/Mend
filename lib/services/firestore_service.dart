@@ -148,6 +148,7 @@ class FirestoreService {
     ),
   ];
 
+  bool _useMock = false;
   late final StreamController<List<IncidentModel>> _incidentsStreamController;
 
   FirestoreService() {
@@ -166,24 +167,52 @@ class FirestoreService {
 
   Stream<List<IncidentModel>> streamIncidents() {
     final firestore = _firestore;
-    if (FirebaseService.isInitialized && firestore != null) {
-      return firestore
+    if (_useMock || !FirebaseService.isInitialized || firestore == null) {
+      return _incidentsStreamController.stream;
+    }
+
+    final controller = StreamController<List<IncidentModel>>.broadcast();
+    StreamSubscription? sub;
+
+    void activateFallback() {
+      _useMock = true;
+      sub?.cancel();
+      sub = null;
+      _incidentsStreamController.stream.listen((data) {
+        if (!controller.isClosed) controller.add(data);
+      });
+      _emitMockList();
+    }
+
+    try {
+      sub = firestore
           .collection('incidents')
           .orderBy('createdAt', descending: true)
           .snapshots()
-          .map((snapshot) {
-        return snapshot.docs.map((doc) {
+          .listen((snapshot) {
+        final list = snapshot.docs.map((doc) {
           return IncidentModel.fromMap(doc.data(), doc.id);
         }).toList();
+        if (!controller.isClosed) controller.add(list);
+      }, onError: (err) {
+        debugPrint('Firestore stream closed (switching to local storage): $err');
+        activateFallback();
       });
-    } else {
-      return _incidentsStreamController.stream;
+    } catch (e) {
+      activateFallback();
     }
+
+    controller.onCancel = () {
+      sub?.cancel();
+      sub = null;
+    };
+
+    return controller.stream;
   }
 
   Future<void> createIncident(IncidentModel incident) async {
     final firestore = _firestore;
-    if (FirebaseService.isInitialized && firestore != null) {
+    if (!_useMock && FirebaseService.isInitialized && firestore != null) {
       try {
         final docRef = firestore.collection('incidents').doc(incident.id);
         await docRef.set(incident.toMap());
@@ -213,7 +242,7 @@ class FirestoreService {
     );
 
     final firestore = _firestore;
-    if (FirebaseService.isInitialized && firestore != null) {
+    if (!_useMock && FirebaseService.isInitialized && firestore != null) {
       try {
         final docRef = firestore.collection('incidents').doc(incidentId);
         await docRef.update({
@@ -253,7 +282,7 @@ class FirestoreService {
 
   Future<void> deleteIncident(String incidentId) async {
     final firestore = _firestore;
-    if (FirebaseService.isInitialized && firestore != null) {
+    if (!_useMock && FirebaseService.isInitialized && firestore != null) {
       try {
         await firestore.collection('incidents').doc(incidentId).delete();
       } catch (e) {
