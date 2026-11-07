@@ -154,12 +154,14 @@ The figures below demonstrate the functional application running on an Android m
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/6_feed_with_urgent_photo.jpg" width="180" alt="Live Feed with Urgent Badge and Photo" />
+  &nbsp;&nbsp;
   <img src="docs/screenshots/4_feed_reset_filter.jpg" width="180" alt="Search Feed & Filter Reset" />
   &nbsp;&nbsp;
   <img src="docs/screenshots/5_profile_verification.jpg" width="180" alt="Profile & Institutional Verification" />
 </p>
 <p align="center">
-  <em>Figure 3: (a) Empty Search State with Quick Filter Reset Button, (b) Profile Screen with Institutional Email Verification Badge & Role Switcher</em>
+  <em>Figure 3: (a) Campus Incidents Feed displaying newly submitted report with camera photo evidence and red URGENT priority badge, (b) Empty search state with quick filter reset button, (c) Profile screen with institutional email verification badge and role switcher</em>
 </p>
 
 ---
